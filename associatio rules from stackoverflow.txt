@@ -1,0 +1,22 @@
+public static List<String> associationRules(List<String> elements) {
+  List<String> result = new ArrayList<>();
+  long limit = 1 << elements.size(); // thanks to saka1029 for this correction. My code was n^2 not 2^n.
+
+  // count from 1 to n^2 - 1
+  for (long i = 1; i < limit; ++i) {
+    StringBuilder seq = new StringBuilder();
+
+    // for each position (character) decide, whether to include it based on the state of the bit.
+    for (int pos = 0; pos < elements.size(); ++pos) {
+      boolean include = ((i >> pos) % 2) == 1; // this line will give you true, if the in 'i' the bit at 'pos' (from behind) is 1, and false otherwise.
+      if (include) {
+        seq.append(elements.get(pos));
+      }
+    }
+
+    // add to the final result the newly generated String.
+    result.add(seq.toString());
+  }
+
+  return result;
+}
