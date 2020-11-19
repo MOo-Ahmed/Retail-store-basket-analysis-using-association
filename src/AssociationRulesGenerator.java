@@ -1,5 +1,3 @@
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
@@ -7,6 +5,7 @@ import java.util.ArrayList;
 public class AssociationRulesGenerator {
 
     public static ArrayList<ArrayList<Integer>> generateLHS(ArrayList<Integer> elements, int N) {
+        //This function generates all possible permuations without repetions
         ArrayList<ArrayList<Integer>> result = new ArrayList<>();
         long limit = 1 << elements.size(); 
         
@@ -30,6 +29,7 @@ public class AssociationRulesGenerator {
   }   
 
     public static ArrayList<Integer> getItemsetComplement(ArrayList<Integer> list, ArrayList<Integer> Original){
+        //Get the RHS items of the rules
         ArrayList<Integer> result = new ArrayList<Integer>() ;
         ArrayList<Integer> copyOfOriginal = new ArrayList<Integer>();
         copyOfOriginal.addAll(Original);
@@ -38,17 +38,19 @@ public class AssociationRulesGenerator {
         return result ;
     }
 
-    public static void perfromVerticalDataFormatAlgorithm(RandomAccessFile file, double minSup, double minConf)
+    public static void perfromVerticalDataFormatAlgorithm(RandomAccessFile file, int minSupportCount, double minConf)
             throws IOException {
         /*
         1- prepare C1
         2- From C1, prepare all combinations
         3- These combinations are to be stored in C2
         */
+        
         int N = CandidatesGenerator.getNumberOfTransactions(file);
-        int minSupportCount = (int) Math.ceil(minSup * N);
         int lastCandidateNumber = CandidatesGenerator.generateFrequentItemsets(N, minSupportCount, file);
+        System.out.println("Finished generating frequent itemsets");
         generateAllAssociationRules(lastCandidateNumber, minConf);
+        System.out.println("Finished generating association rules");
         // Till here you have generated all frequent itemsets.
         // Next step is to generate all possible association rules from the last table of frequent itemsets
         // Then exclude whatever rules that don't satisfy the minConf
@@ -82,10 +84,13 @@ public class AssociationRulesGenerator {
 
                 int LHSSupportCount = getItemsetSupportCount(allAssociationRules.get(j).Items);
                 int UnionSupportCount = getItemsetSupportCount(union);
-                double confidence = UnionSupportCount / LHSSupportCount ;
+                double confidence = UnionSupportCount * 1.0 / LHSSupportCount ;
+                //System.out.println(confidence);
                 if(confidence >= minConf){
                     resultAssociationRules.add(allAssociationRules.get(j));
+                    //System.out.println(allAssociationRules.get(j));
                 }
+                union.clear();
             }
             r = readRecord(file);
         }
@@ -102,7 +107,7 @@ public class AssociationRulesGenerator {
         boolean notFound = true ;
         while(notFound){
             Record r = readRecord(file);
-            if(r.Items.containsAll(itemset) && itemsetSize == r.Items.size()){
+            if(r!= null && r.Items.containsAll(itemset) && itemsetSize == r.Items.size()){
                 // Then this is the intended record
                 supCount = r.Transactions.size();
                 notFound = false ;
@@ -110,15 +115,6 @@ public class AssociationRulesGenerator {
         }
         file.close();
         return supCount;
-    }
-
-    public void writeAssociationRecord(ArrayList<Record> records) throws IOException {
-        String associationFilename = "rules.txt";
-        BufferedWriter bw = new BufferedWriter(new FileWriter("candidates/" + associationFilename));
-        for (int i = 0; i < records.size(); i++) {
-            bw.write(records.get(i).toString() + "\n");
-        }
-        bw.close();
     }
 
     public static Record readRecord(RandomAccessFile file) throws IOException {
@@ -135,7 +131,6 @@ public class AssociationRulesGenerator {
     }
 
     public static ArrayList<Record> generateAllAssociationRuleCombinations(Record r){
-        //{1,2,4,7} 
         ArrayList<ArrayList<Integer>> LHS = generateLHS(r.Items, r.Items.size());
         ArrayList<Record> Associations = new ArrayList<Record>();
         for(int i = 0 ; i < LHS.size() ; i++){

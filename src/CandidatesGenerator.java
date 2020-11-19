@@ -6,20 +6,25 @@ import java.util.ArrayList;
 
 public class CandidatesGenerator {
     public static int generateFrequentItemsets(int N, int minSupportCount, RandomAccessFile file) throws IOException {
+        //This function generates all candidate files
         ArrayList<Record> records = generateTransactionSetsFile(file, N, minSupportCount); // This file represents C1
-        //String candidate_1_filename = "candidates/C1.txt" ;
         int itemsetSize = 2 ; // We have already prepared 1-itemsets
         boolean moreFrequentSupersets = true ; // If false, stop and generate the association rules
         ArrayList<Record> nextCandidate = new ArrayList();
         for(; moreFrequentSupersets ;){
+            //The next line returns all the possible itemsets from the current candidate file
             nextCandidate = getAllItemsetCombinations(records, minSupportCount);
             if(nextCandidate.isEmpty()){
-                //System.out.println("I got here");
+                // Then we have no frequent itemsets to write, we can stop now 
+                //and begin association
                 break ;
             }
             else{
-                writeCandidate(nextCandidate, itemsetSize++);
+                // Still have candidates .. save it to the current candidate file
+                writeCandidate(nextCandidate, itemsetSize++); 
                 records.clear();
+                //The next line is used to make us generate next candidates 
+                //from the current ones
                 records.addAll(nextCandidate);
                 nextCandidate.clear();
             }
@@ -29,6 +34,7 @@ public class CandidatesGenerator {
 
     public static ArrayList<Record> generateTransactionSetsFile(RandomAccessFile file, int N, int minSupportCount)
      throws IOException {
+         //This function generates C1
         /*
          * 1- Traverse the dataset file, transaction by transaction 2- Get the itemset
          * of the cusrrent transaction, iterate through each item 3- If the list of
@@ -42,22 +48,23 @@ public class CandidatesGenerator {
             String line = readTransaction(file);
             ArrayList<Integer> items = parseStringToIntegerArray(line, " ");
             for (int j = 0; j < items.size(); j++) {
+                //Check if we already have got this item 
                 int indexOfItemInRecords = getIndexWhereItemRecorded(items.get(j), records);
                 if (indexOfItemInRecords == -1) {
-                    // It should be inserted
+                    // The item should be inserted
                     ArrayList<Integer> tempItems = new ArrayList(), tempTransaction = new ArrayList();
                     tempItems.add(items.get(j));
-                    tempTransaction.add(i + 1);
+                    tempTransaction.add(i + 1); //The id of the transaction
                     Record r = new Record(tempItems, tempTransaction);
                     records.add(r);
                 } else {
-                    // We just need to add T number
+                    // We just need to add T id
                     records.get(indexOfItemInRecords).Transactions.add(i + 1);
                 }
             }
         }
-        filterCandidate(records, minSupportCount);
-        writeCandidate(records, 1);
+        filterCandidate(records, minSupportCount); //According to min threshold
+        writeCandidate(records, 1); //On the C1 file
         return records ;
     }
 
@@ -70,6 +77,7 @@ public class CandidatesGenerator {
                 ArrayList<Integer> mixedItems = addOnlyUniqueItems(r1.Items, r2.Items);
                 ArrayList<Integer> commmonTransactions = getCommonTransactions(r1.Transactions, r2.Transactions);
                 if(commmonTransactions.size() >= minSupportCount && !isItemsetRedundant(combinations, mixedItems)){
+                    // If the itemset is frequent and doesn't exist before
                     Record newRecord = new Record(mixedItems, commmonTransactions);
                     combinations.add(newRecord);
                 }
@@ -92,6 +100,7 @@ public class CandidatesGenerator {
     }
 
     public static ArrayList<Integer> getCommonTransactions(ArrayList<Integer> A1, ArrayList<Integer> A2){
+        //A1 and A2 are lists of transactions .. we need to get the common ones
         ArrayList<Integer> A = new ArrayList();
         int n1 = A1.size(), n2 = A2.size();
         if(n1 < n2){
@@ -118,6 +127,7 @@ public class CandidatesGenerator {
     }
 
     private static void filterCandidate(ArrayList<Record> records, int minSupportCount) {
+        //Check if frequent
         int N = records.size();
         for(int i = 0 ; i < N ; i++){
             int n = records.get(i).Transactions.size();
@@ -138,11 +148,12 @@ public class CandidatesGenerator {
     }
 
     public static String readTransaction(RandomAccessFile file) throws IOException {
+        //This function read a transaction from the original data set
         return file.readLine();
     }
 
     public static int getIndexWhereItemRecorded(int item, ArrayList<Record> records){
-        // This function checks if we recorded this item before. If true -> returns the index
+        // This function checks if we recorded this item(s) before. If true -> returns the index
         // Else -> returns -1
         for(int i = 0 ; i < records.size(); i++){
             if(records.get(i).Items.get(0) == item){
@@ -153,6 +164,7 @@ public class CandidatesGenerator {
     }
 
     public static int getNumberOfTransactions(RandomAccessFile file) throws IOException {
+        //This function helps us calculate N in case it's unknown
         int count = 0 ;
         for(int i = 0 ; file.readLine() != null ;){
             count++;
@@ -174,7 +186,7 @@ public class CandidatesGenerator {
     }
 
     public static ArrayList<Integer> addOnlyUniqueItems(ArrayList<Integer> A1, ArrayList<Integer> A2){
-        // Add only the items existing only in A1 to A2, return new list
+        // gather the items existing in A1 but not A2 .. add them to A2, return new list
         ArrayList<Integer> A = new ArrayList();
         A.addAll(A2);
         for(int i = 0 ; i < A1.size() ; i++){
