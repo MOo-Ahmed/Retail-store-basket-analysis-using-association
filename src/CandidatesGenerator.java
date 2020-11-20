@@ -140,11 +140,21 @@ public class CandidatesGenerator {
     }
 
     public static void writeCandidate(ArrayList<Record> records, int candidateNumber) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter("candidates/C" + candidateNumber + ".txt"));
+        BufferedWriter bw = new BufferedWriter(new FileWriter("candidates/C" + candidateNumber + ".txt")) ;
+        BufferedWriter bw2 = null ;
+        if(candidateNumber > 0){
+            bw2 = new BufferedWriter(new FileWriter("candidates/F" + candidateNumber + ".txt"));
+        }
         for (int i = 0; i < records.size(); i++) {
-            bw.write(records.get(i).toString() + "\n");
+            bw.write(records.get(i).toString());
+            bw2.write(records.get(i).getItemsFrequencyPair());
+            if(i+1 < records.size()){
+                bw.write("\n");
+                bw2.write("\n");
+            }
         }
         bw.close();
+        bw2.close();
     }
 
     public static String readTransaction(RandomAccessFile file) throws IOException {

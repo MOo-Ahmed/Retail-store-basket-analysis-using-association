@@ -11,6 +11,19 @@ public class Record {
 
     public Record(){}
 
+    public String getItemsFrequencyPair(){
+        String output = "" ;
+        for(int i = 0 ; i < Items.size() ; i++){
+            output = output.concat(String.valueOf(Items.get(i)));
+            if(i+1 != Items.size()){
+                output = output.concat(",");
+            }
+        }
+        output = output.concat(">" + Transactions.size()) ;
+        //System.out.println(output);
+        return output ;
+    }
+
     @Override
     public String toString(){
         String output = "" ;
