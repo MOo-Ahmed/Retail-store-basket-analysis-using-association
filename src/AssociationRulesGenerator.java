@@ -57,7 +57,7 @@ public class AssociationRulesGenerator {
         // Then exclude whatever rules that don't satisfy the minConf
          
         generateAllAssociationRules(lastCandidateNumber, minConf);
-        System.out.println("Finished generating association rules");
+        System.out.println("Finished generating association rules .. \nHave a look on the file C0.txt");
         
     }
 
