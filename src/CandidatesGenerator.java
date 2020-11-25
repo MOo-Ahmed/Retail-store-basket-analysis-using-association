@@ -75,6 +75,10 @@ public class CandidatesGenerator {
             for(int j = i + 1 ; j < records.size(); j++){
                 Record r2 = records.get(j);
                 ArrayList<Integer> mixedItems = addOnlyUniqueItems(r1.Items, r2.Items);
+                if(mixedItems.size()-1 > r1.Items.size()){
+                    //If we have I1,I2 AND I3,I4 -> C3 mustn't contain I1,I2,I3,I4
+                    continue;
+                }
                 ArrayList<Integer> commmonTransactions = getCommonTransactions(r1.Transactions, r2.Transactions);
                 if(commmonTransactions.size() >= minSupportCount && !isItemsetRedundant(combinations, mixedItems)){
                     // If the itemset is frequent and doesn't exist before

@@ -23,7 +23,7 @@ public class AssociationRulesGenerator {
             }
         }
         if(seq.size() != N)
-            // add to the final result the newly generated String.
+            // add to the final result the newly generated set.
             result.add(seq);
     }
   
@@ -38,7 +38,7 @@ public class AssociationRulesGenerator {
         return copyOfOriginal ;
     }
 
-    public static void perfromVerticalDataFormatAlgorithm(String datasetFileName, int minSupportCount, double minConf)
+    public static void perfromVerticalDataFormatAlgorithm(String datasetFileName, double minSupport, double minConf)
             throws IOException {
         /*
         1- prepare C1
@@ -48,6 +48,8 @@ public class AssociationRulesGenerator {
         
         RandomAccessFile file = new RandomAccessFile(datasetFileName, "r");
         int N = CandidatesGenerator.getNumberOfTransactions(file);
+        double msCount = Math.ceil(N * minSupport);
+        int minSupportCount = (int) msCount ;
         int lastCandidateNumber = CandidatesGenerator.generateFrequentItemsets(N, minSupportCount, file);
         file.close();
         System.out.println("Finished generating frequent itemsets");
@@ -69,9 +71,10 @@ public class AssociationRulesGenerator {
         4- If the rule satisfies the minConf then write it to the file 
         */
         BufferedWriter bw = new BufferedWriter(new FileWriter("candidates/C0.txt")) ;
+        BufferedWriter bw2 = new BufferedWriter(new FileWriter("candidates/AssociationRulesWithConfidence.txt")) ;
         RandomAccessFile file = new RandomAccessFile("candidates/C" + lastCandidateNumber + ".txt", "rw");
         file.seek(0);
-        ArrayList<Record> resultAssociationRules = new ArrayList<Record>(); // The final ones
+        //ArrayList<Record> resultAssociationRules = new ArrayList<Record>(); // The final ones
         ArrayList<Record> allAssociationRules = new ArrayList<Record>(); // But not all satisfactory
         Record r = readRecord(file , false);
         // From this record you should get all the association rules
@@ -89,6 +92,7 @@ public class AssociationRulesGenerator {
                 int LHSSupportCount = getItemsetSupportCount(temp.Items);
                 int UnionSupportCount = getItemsetSupportCount(union);
                 double confidence = UnionSupportCount * 1.0 / LHSSupportCount ;
+                bw2.write(temp.toString() + " .. CONF = " + confidence + "\n");
                 if(confidence >= minConf){
                     bw.write(temp.toString() + "\n");
                 }
@@ -99,8 +103,8 @@ public class AssociationRulesGenerator {
             
         }
         bw.close();
+        bw2.close();
         file.close();
-        //CandidatesGenerator.writeCandidate(resultAssociationRules, 0);
         // We shall have C0.txt file where we have association rules
     }
 
